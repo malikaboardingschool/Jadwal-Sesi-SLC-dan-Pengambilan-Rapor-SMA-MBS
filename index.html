@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jadwal Sesi SLC & Rapor - SMA Malika</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel (untuk membaca JSX di browser) -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body class="bg-slate-50">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useMemo } = React;
+
+        // --- KOMPONEN ICON ---
+        const SearchIcon = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>;
+        const ClockIcon = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>;
+        const UserIcon = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>;
+        const CalendarIcon = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>;
+        const MapPinIcon = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>;
+        const SchoolIcon = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M14 22v-4a2 2 0 1 0-4 0v4"/><path d="m18 10 4 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-8l4-2"/><path d="M18 5v17"/><path d="m4 6 8-4 8 4"/><path d="M6 5v17"/><circle cx="12" cy="9" r="2"/></svg>;
+        const AlertCircleIcon = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>;
+        const ShieldIcon = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>;
+        const ShieldCheckIcon = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>;
+        const XIcon = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>;
+
+        // --- DATA SISWA SMA MALIKA BOARDING SCHOOL ---
+        const studentData = [
+            // === 10 PUTRA ===
+            { id: '10PA-1', name: 'Raihan Ramadhan', className: '10 Putra', time: '07.30 - 07.42 WIB' },
+            { id: '10PA-2', name: 'Muhammad Adil Shidqi', className: '10 Putra', time: '07.42 - 07.54 WIB' },
+            { id: '10PA-3', name: 'Fasabbi Haqieqie Pramada Rozak', className: '10 Putra', time: '07.54 - 08.06 WIB' },
+            { id: '10PA-4', name: 'Attiq Muzaki Ibrahim', className: '10 Putra', time: '08.06 - 08.18 WIB' },
+            { id: '10PA-5', name: 'Dhafinzha Muhammad Fakhri', className: '10 Putra', time: '08.18 - 08.30 WIB' },
+            { id: '10PA-6', name: 'Akmal Ihsan Huwaidi', className: '10 Putra', time: '08.30 - 08.42 WIB' },
+            { id: '10PA-7', name: 'Salim Al Habsyi', className: '10 Putra', time: '08.42 - 08.54 WIB' },
+            { id: '10PA-8', name: 'Sayyid Aqil Sakhiy Wahyudi', className: '10 Putra', time: '08.54 - 09.06 WIB' },
+            { id: '10PA-9', name: 'Muhammad Azmi', className: '10 Putra', time: '09.06 - 09.18 WIB' },
+            { id: '10PA-10', name: 'Muhamad Rafka Alvaro', className: '10 Putra', time: '09.18 - 09.30 WIB' },
+            { id: '10PA-11', name: 'Yudha Pratama Nurwicaksana Nasution', className: '10 Putra', time: '09.30 - 09.42 WIB' },
+            { id: '10PA-12', name: 'Muhammad Agla Alfathur Rahman', className: '10 Putra', time: '09.42 - 09.54 WIB' },
+            { id: '10PA-13', name: 'Muhammad Ammar Muzakki', className: '10 Putra', time: '09.54 - 10.06 WIB' },
+            { id: '10PA-14', name: 'Mochammad Alfath Dhafin', className: '10 Putra', time: '10.06 - 10.18 WIB' },
+            { id: '10PA-15', name: 'Muhammad Fahri Alfarizi', className: '10 Putra', time: '10.18 - 10.30 WIB' },
+            { id: '10PA-16', name: 'Muhammad Fahri Rosadi', className: '10 Putra', time: '10.30 - 10.42 WIB' },
+            { id: '10PA-17', name: 'Afa Zaidan Putra Tamba', className: '10 Putra', time: '10.42 - 10.54 WIB' },
+            { id: '10PA-18', name: 'Adhwa Arsya Gatfan', className: '10 Putra', time: '10.54 - 11.06 WIB' },
+            { id: '10PA-19', name: 'Irsyad Haitami Fajrin', className: '10 Putra', time: '11.06 - 11.18 WIB' },
+            { id: '10PA-20', name: 'Charli Andestian', className: '10 Putra', time: '11.18 - 11.30 WIB' },
+            { id: '10PA-21', name: 'Danendra Apta Kayana', className: '10 Putra', time: '11.30 - 11.42 WIB' },
+            { id: '10PA-22', name: 'Bazyli Rafif Azka', className: '10 Putra', time: '11.42 - 11.54 WIB' },
+            { id: '10PA-23', name: 'Asyraf Fairuz Mumtaz', className: '10 Putra', time: '12.30 - 12.42 WIB' },
+            { id: '10PA-24', name: 'Albisna Zinata Ababil', className: '10 Putra', time: '12.42 - 12.54 WIB' },
+            { id: '10PA-25', name: 'Muhammad Suryo Nugra Putra Anwar', className: '10 Putra', time: '12.54 - 13.06 WIB' },
+            { id: '10PA-26', name: 'Nawwaf Bilza Pakpahan', className: '10 Putra', time: '13.06 - 13.18 WIB', isHold: true },
+            { id: '10PA-27', name: 'Raditya Bustanul Tamam', className: '10 Putra', time: '13.18 - 13.30 WIB' },
+            { id: '10PA-28', name: 'Bayanaca Qotthon Elbarca', className: '10 Putra', time: '13.30 - 13.42 WIB', isHold: true },
+            { id: '10PA-29', name: 'Ahmad Rafli Dhani Muzakki', className: '10 Putra', time: '13.42 - 13.54 WIB' },
+            { id: '10PA-30', name: 'Muhammad Azmal Baihaqi Kayzen', className: '10 Putra', time: '13.54 - 14.06 WIB' },
+
+            // === 10 PUTRI ===
+            { id: '10PI-1', name: 'Najwa Althafunisa', className: '10 Putri', time: '07.30 - 07.42 WIB' },
+            { id: '10PI-2', name: 'Zahiratul Aisyi', className: '10 Putri', time: '07.42 - 07.54 WIB' },
+            { id: '10PI-3', name: 'Aulia Zahra Nur Sakinah', className: '10 Putri', time: '07.54 - 08.06 WIB' },
+            { id: '10PI-4', name: 'Kayla Putri Az Zahra', className: '10 Putri', time: '08.06 - 08.18 WIB' },
+            { id: '10PI-5', name: 'Faiha Ulayya', className: '10 Putri', time: '08.18 - 08.30 WIB' },
+            { id: '10PI-6', name: 'Callysta Zhahira', className: '10 Putri', time: '08.30 - 08.42 WIB' },
+            { id: '10PI-7', name: 'Amelinda Nur Febriana', className: '10 Putri', time: '08.42 - 08.54 WIB' },
+            { id: '10PI-8', name: 'Citra Aulia Saputra', className: '10 Putri', time: '08.54 - 09.06 WIB' },
+            { id: '10PI-9', name: 'Virly Evelyn Dean Zahra', className: '10 Putri', time: '09.06 - 09.18 WIB' },
+            { id: '10PI-10', name: 'Raihana Radwa Fahira', className: '10 Putri', time: '09.18 - 09.30 WIB' },
+            { id: '10PI-11', name: 'Wildatul Hasanah', className: '10 Putri', time: '09.30 - 09.42 WIB' },
+            { id: '10PI-12', name: 'Syifa Az Zahra', className: '10 Putri', time: '09.42 - 09.54 WIB', isHold: true },
+            { id: '10PI-13', name: 'Vicky Fadilah Lutfiyana', className: '10 Putri', time: '09.54 - 10.06 WIB', isHold: true },
+            { id: '10PI-14', name: 'Maia Dina Islamiy Shobariah', className: '10 Putri', time: '10.06 - 10.18 WIB' },
+            { id: '10PI-15', name: 'Siti Aulia Rahma', className: '10 Putri', time: '10.18 - 10.30 WIB' },
+            { id: '10PI-16', name: 'Yuha Rizqiyatul Muyassaroh', className: '10 Putri', time: '10.30 - 10.42 WIB' },
+            { id: '10PI-17', name: 'Khansa Avicenna', className: '10 Putri', time: '10.42 - 10.54 WIB' },
+            { id: '10PI-18', name: 'Anjeli Ghenia Asmedi', className: '10 Putri', time: '10.54 - 11.06 WIB' },
+            { id: '10PI-19', name: 'Tia Anggrianti', className: '10 Putri', time: '11.06 - 11.18 WIB' },
+            { id: '10PI-20', name: 'Egidhea Sakha Gendis', className: '10 Putri', time: '11.18 - 11.30 WIB' },
+            { id: '10PI-21', name: 'Kanaya Azzalea Maulida', className: '10 Putri', time: '11.30 - 11.42 WIB' },
+            { id: '10PI-22', name: 'Kesya Hana Alzena', className: '10 Putri', time: '11.42 - 11.54 WIB' },
+            { id: '10PI-23', name: 'Amira Azzarine', className: '10 Putri', time: '12.30 - 12.42 WIB' },
+            { id: '10PI-24', name: 'Alfina Dhiya Ulhaq', className: '10 Putri', time: '12.42 - 12.54 WIB' },
+            { id: '10PI-25', name: 'Nasya Adya Mustafidah', className: '10 Putri', time: '12.54 - 13.06 WIB' },
+            { id: '10PI-26', name: 'Kesya Anastasya Putri', className: '10 Putri', time: '13.06 - 13.18 WIB' },
+            { id: '10PI-27', name: 'Ussy Elsinasari', className: '10 Putri', time: '13.18 - 13.30 WIB' },
+            { id: '10PI-28', name: 'Ratu Syahlina Samlawi', className: '10 Putri', time: '13.30 - 13.42 WIB' },
+            { id: '10PI-29', name: 'Cinta Vanesya', className: '10 Putri', time: '13.42 - 13.54 WIB' },
+            { id: '10PI-30', name: 'Yolanda Febriani', className: '10 Putri', time: '13.54 - 14.06 WIB' },
+            { id: '10PI-31', name: 'Zulfa Nurul Fauziah', className: '10 Putri', time: '14.06 - 14.18 WIB' }
+        ];
+
+        // --- APP KOMPONEN UTAMA ---
+        function App() {
+            const [searchTerm, setSearchTerm] = useState('');
+            const [students, setStudents] = useState(studentData);
+            const [isAdmin, setIsAdmin] = useState(false);
+            
+            const [showLoginModal, setShowLoginModal] = useState(false);
+            const [passwordInput, setPasswordInput] = useState('');
+            const [loginError, setLoginError] = useState('');
+
+            const handleAdminAccessClick = () => {
+                if (isAdmin) {
+                    setIsAdmin(false); 
+                } else {
+                    setShowLoginModal(true); 
+                    setPasswordInput('');
+                    setLoginError('');
+                }
+            };
+
+            const handleLoginSubmit = (e) => {
+                e.preventDefault();
+                if (passwordInput === "malika123") {
+                    setIsAdmin(true);
+                    setShowLoginModal(false);
+                } else {
+                    setLoginError('Password salah!');
+                }
+            };
+
+            const toggleHoldStatus = (id) => {
+                setStudents(prev => prev.map(s => s.id === id ? { ...s, isHold: !s.isHold } : s));
+            };
+
+            const trimmedSearch = searchTerm.trim().toLowerCase();
+            const isSearchTooShort = trimmedSearch.length > 0 && trimmedSearch.length < 3;
+
+            const filteredStudents = useMemo(() => {
+                if (!trimmedSearch || isSearchTooShort) return [];
+                const searchWords = trimmedSearch.split(/\s+/);
+                return students.filter(student => {
+                    const fullName = student.name.toLowerCase();
+                    return searchWords.every(word => fullName.includes(word));
+                });
+            }, [trimmedSearch, students, isSearchTooShort]);
+
+            return (
+                <div className="min-h-screen flex flex-col font-sans">
+                
+                {/* Header Banner */}
+                <header className="relative bg-gradient-to-r from-teal-600 to-emerald-500 shadow-md overflow-hidden">
+                    {/* Futuristic Wave Pattern SVG */}
+                    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                        <svg className="absolute bottom-0 w-full h-auto text-white/10" viewBox="0 0 1440 320" preserveAspectRatio="none">
+                            <path fill="currentColor" d="M0,224L48,213.3C96,203,192,181,288,181.3C384,181,480,203,576,213.3C672,224,768,224,864,202.7C960,181,1056,139,1152,138.7C1248,139,1344,181,1392,202.7L1440,224L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+                        </svg>
+                        <svg className="absolute bottom-0 w-full h-auto text-white/5" viewBox="0 0 1440 320" preserveAspectRatio="none">
+                            <path fill="currentColor" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,112C672,96,768,96,864,112C960,128,1056,160,1152,160C1248,160,1344,128,1392,112L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+                        </svg>
+                    </div>
+
+                    <div className="relative z-10 max-w-4xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+                        <div className="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0 text-white">
+                            
+                            <div className="flex items-center space-x-4">
+                            <div className="bg-white p-2 rounded-full shadow-lg">
+                                <img 
+                                src="https://iili.io/FsLlXA7.png" 
+                                alt="Logo SMA Malika Boarding School" 
+                                className="h-16 w-16 md:h-20 md:w-20 object-contain rounded-full"
+                                />
+                            </div>
+                            <div>
+                                <h1 className="text-xl md:text-3xl font-bold tracking-tight">
+                                Sesi Student Led Conference <br className="hidden md:block"/> dan Pembagian Rapor
+                                </h1>
+                                <p className="text-teal-50 flex items-center mt-1 text-sm md:text-base">
+                                <SchoolIcon className="w-4 h-4 mr-1" />
+                                SMA Malika Boarding School
+                                </p>
+                            </div>
+                            </div>
+
+                            <div className="bg-teal-800/30 backdrop-blur-sm rounded-lg p-3 text-sm border border-teal-400/50 shadow-inner w-full md:w-auto">
+                            <div className="flex items-center space-x-2 text-teal-50 mb-1">
+                                <CalendarIcon className="w-4 h-4 text-teal-200" />
+                                <span className="font-semibold">Selasa, 16 Juni 2026</span>
+                            </div>
+                            <div className="flex items-center justify-between space-x-4 text-teal-50">
+                                <div className="flex items-center space-x-2">
+                                <MapPinIcon className="w-4 h-4 text-teal-200" />
+                                <span>Gedung SMA Malika</span>
+                                </div>
+                                {isAdmin && (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-amber-500 text-white shadow-sm">
+                                    <ShieldCheckIcon className="w-3 h-3 mr-1" />
+                                    Admin
+                                </span>
+                                )}
+                            </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </header>
+
+                {/* Main Content Area */}
+                <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-8 sm:px-6 lg:px-8">
+                    
+                    {isAdmin ? (
+                    <div className="relative z-10 -mt-12">
+                        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8 mb-8 text-center">
+                        <h2 className="text-xl font-bold text-slate-800 mb-2 flex items-center justify-center">
+                            <ShieldCheckIcon className="w-6 h-6 text-amber-500 mr-2" />
+                            Daftar Tunggakan Siswa
+                        </h2>
+                        <p className="text-slate-500 text-sm">
+                            Berikut adalah daftar siswa yang jadwal SLC & rapornya ditangguhkan. <br className="hidden md:block" />
+                            Klik "Tandai Lunas" jika siswa sudah menyelesaikan pembayaran.
+                        </p>
+                        </div>
+
+                        <div className="max-w-2xl mx-auto space-y-4">
+                        {students.filter(s => s.isHold).length > 0 ? (
+                            students.filter(s => s.isHold).map(student => (
+                            <div key={student.id} className="bg-white border-l-4 border-red-500 rounded-xl p-5 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:shadow-md transition-shadow">
+                                <div className="flex items-center gap-4 w-full">
+                                <div className="bg-red-50 p-3 rounded-full flex-shrink-0">
+                                    <AlertCircleIcon className="h-6 w-6 text-red-500" />
+                                </div>
+                                <div className="flex flex-col text-left">
+                                    <span className="text-lg text-slate-800 font-bold">{student.name}</span>
+                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700 w-fit mt-1">
+                                    Kelas: {student.className}
+                                    </span>
+                                </div>
+                                </div>
+                                <button 
+                                onClick={() => toggleHoldStatus(student.id)}
+                                className="mt-2 sm:mt-0 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors flex-shrink-0 whitespace-nowrap shadow-sm w-full sm:w-auto"
+                                >
+                                Tandai Lunas
+                                </button>
+                            </div>
+                            ))
+                        ) : (
+                            <div className="text-center py-12 px-4 bg-white rounded-2xl border border-slate-100 shadow-sm">
+                            <div className="bg-emerald-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <ShieldCheckIcon className="h-10 w-10 text-emerald-500" />
+                            </div>
+                            <h3 className="text-lg font-bold text-slate-900 mb-1">Semua Siswa Telah Lunas</h3>
+                            <p className="text-slate-500">Tidak ada lagi tunggakan pembayaran. Semua jadwal siswa telah terbuka.</p>
+                            </div>
+                        )}
+                        </div>
+                    </div>
+                    ) : (
+                    <React.Fragment>
+                        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8 mb-8 relative z-10 -mt-12">
+                        <div className="mb-6 text-center">
+                            <h2 className="text-xl font-semibold text-slate-800 mb-2">Cari Jadwal Siswa</h2>
+                            <p className="text-slate-500 text-sm">
+                            Masukkan nama lengkap atau panggilan dan Mohon hadir tepat waktu
+                            </p>
+                        </div>
+
+                        <div className="relative max-w-2xl mx-auto">
+                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <SearchIcon className="h-5 w-5 text-slate-400" />
+                            </div>
+                            <input
+                            type="text"
+                            className="block w-full pl-11 pr-4 py-4 border-2 border-slate-200 rounded-xl leading-5 bg-slate-50 placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-0 focus:border-emerald-500 transition-colors duration-200 text-lg shadow-inner"
+                            placeholder="Ketik minimal 3 huruf awalan nama..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            />
+                            {searchTerm && (
+                            <button 
+                                onClick={() => setSearchTerm('')}
+                                className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600"
+                            >
+                                <span className="text-sm font-medium bg-slate-200 px-2 py-1 rounded-md">Clear</span>
+                            </button>
+                            )}
+                        </div>
+                        </div>
+
+                        <div className="max-w-2xl mx-auto">
+                        {searchTerm.trim() === '' ? (
+                            null 
+                        ) : isSearchTooShort ? (
+                            <div className="text-center py-12 px-4 bg-white rounded-2xl border border-slate-100 shadow-sm">
+                            <div className="bg-blue-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <SearchIcon className="h-8 w-8 text-blue-400" />
+                            </div>
+                            <h3 className="text-lg font-bold text-slate-900 mb-1">Ketik Lebih Spesifik</h3>
+                            <p className="text-slate-500">
+                                Mohon ketik <strong>minimal 3 huruf</strong> agar pencarian lebih akurat dan tepat sasaran.
+                            </p>
+                            </div>
+                        ) : filteredStudents.length > 0 ? (
+                            <div className="space-y-4">
+                            <p className="text-sm text-slate-500 font-medium mb-4 px-1">
+                                Ditemukan {filteredStudents.length} siswa dengan kata kunci "{searchTerm}"
+                            </p>
+                            
+                            {filteredStudents.map((student) => (
+                                student.isHold ? (
+                                <div key={student.id} className="bg-red-50 border border-red-200 rounded-xl p-5 flex flex-col sm:flex-row items-center sm:items-start gap-4 shadow-sm w-full">
+                                    <AlertCircleIcon className="h-8 w-8 text-red-600 flex-shrink-0" />
+                                    <div className="flex flex-col text-center sm:text-left w-full mt-1 sm:mt-0">
+                                    <span className="text-base sm:text-lg text-red-800 font-bold">Informasi Sesi Ditangguhkan</span>
+                                    <span className="text-sm text-red-700 font-medium mt-1">
+                                        Mohon maaf, jadwal pengambilan rapor tidak dapat ditampilkan. Harap selesaikan kewajiban pembayaran.
+                                    </span>
+                                    </div>
+                                </div>
+                                ) : (
+                                <div 
+                                    key={student.id} 
+                                    className="bg-white rounded-xl shadow-sm border-l-4 border-emerald-500 overflow-hidden hover:shadow-md transition-shadow duration-200 p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 group"
+                                >
+                                    <div className="flex items-start space-x-4">
+                                    <div className="p-3 rounded-full transition-colors bg-slate-100 group-hover:bg-emerald-50">
+                                        <UserIcon className="h-6 w-6 text-slate-500 group-hover:text-emerald-600" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-lg font-bold text-slate-800 leading-tight mb-1">
+                                        {student.name}
+                                        </h3>
+                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700">
+                                        Kelas: {student.className}
+                                        </span>
+                                    </div>
+                                    </div>
+                                    
+                                    <div className="bg-emerald-50 border border-emerald-100 rounded-lg px-4 py-3 flex items-center w-full sm:w-auto mt-2 sm:mt-0 shadow-sm">
+                                    <ClockIcon className="h-5 w-5 text-emerald-600 mr-2 flex-shrink-0" />
+                                    <div className="flex flex-col text-left">
+                                        <span className="text-xs text-emerald-700 font-semibold uppercase tracking-wider">Waktu</span>
+                                        <span className="text-emerald-900 font-bold whitespace-nowrap">{student.time}</span>
+                                    </div>
+                                    </div>
+                                </div>
+                                )
+                            ))}
+                            </div>
+                        ) : (
+                            <div className="text-center py-12 px-4 bg-white rounded-2xl border border-slate-100 shadow-sm">
+                            <div className="bg-red-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <SearchIcon className="h-8 w-8 text-red-400" />
+                            </div>
+                            <h3 className="text-lg font-medium text-slate-900 mb-1">Siswa Tidak Ditemukan</h3>
+                            <p className="text-slate-500">
+                                Pastikan ejaan nama sudah benar atau coba gunakan nama panggilan.
+                            </p>
+                            </div>
+                        )}
+                        </div>
+                    </React.Fragment>
+                    )}
+                </main>
+
+                {/* Footer */}
+                <footer className="bg-white border-t border-slate-200 mt-auto">
+                    <div className="max-w-4xl mx-auto px-4 py-6 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between text-sm text-slate-500">
+                    <p className="text-center sm:text-left">© 2026 SMA Malika Boarding School. Harap datang tepat waktu sesuai jadwal.</p>
+                    <button 
+                        onClick={handleAdminAccessClick}
+                        className={`mt-4 sm:mt-0 flex items-center p-2 transition-colors rounded-full ${isAdmin ? 'text-teal-600 bg-teal-50' : 'text-slate-300 hover:text-teal-600 hover:bg-slate-100'}`}
+                        title={isAdmin ? "Tutup Akses Admin" : "Akses Admin"}
+                    >
+                        <ShieldIcon className="w-5 h-5" />
+                    </button>
+                    </div>
+                </footer>
+
+                {/* Modal Login Admin */}
+                {showLoginModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden">
+                        <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                        <h3 className="text-lg font-bold text-slate-800 flex items-center">
+                            <ShieldIcon className="w-5 h-5 text-teal-600 mr-2" />
+                            Masuk Mode Admin
+                        </h3>
+                        <button 
+                            onClick={() => setShowLoginModal(false)}
+                            className="text-slate-400 hover:text-slate-600 transition-colors"
+                        >
+                            <XIcon className="w-5 h-5" />
+                        </button>
+                        </div>
+                        <form onSubmit={handleLoginSubmit} className="p-6">
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Password Akses</label>
+                            <input
+                            type="password"
+                            className={`w-full px-4 py-3 border ${loginError ? 'border-red-300 focus:ring-red-500' : 'border-slate-300 focus:ring-teal-500'} rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition-all`}
+                            placeholder="Masukkan password..."
+                            value={passwordInput}
+                            onChange={(e) => {
+                                setPasswordInput(e.target.value);
+                                setLoginError('');
+                            }}
+                            autoFocus
+                            />
+                            {loginError && <p className="text-red-500 text-sm mt-2">{loginError}</p>}
+                        </div>
+                        <div className="flex justify-end gap-3 mt-6">
+                            <button
+                            type="button"
+                            onClick={() => setShowLoginModal(false)}
+                            className="px-4 py-2 text-slate-600 font-medium hover:bg-slate-100 rounded-lg transition-colors"
+                            >
+                            Batal
+                            </button>
+                            <button
+                            type="submit"
+                            className="px-4 py-2 bg-teal-600 text-white font-medium hover:bg-teal-700 rounded-lg transition-colors shadow-sm"
+                            >
+                            Masuk
+                            </button>
+                        </div>
+                        </form>
+                    </div>
+                    </div>
+                )}
+                </div>
+            );
+        }
+
+        // Render App ke dalam div#root
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
